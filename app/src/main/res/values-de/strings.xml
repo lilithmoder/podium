@@ -67,6 +67,12 @@
     <string name="common_saved">Gespeichert</string>
     <string name="common_search">Suche</string>
     <string name="common_size">Größe</string>
+    <string name="common_skip_silence">Stille überspringen</string>
+    <string name="common_skip_silence_description">Verkürzt Pausen zwischen Wörtern und Sätzen. Stärkere Stufen sparen mehr Zeit, können aber weniger natürlich klingen.</string>
+    <string name="common_skip_silence_medium">Mittel</string>
+    <string name="common_skip_silence_mild">Leicht</string>
+    <string name="common_skip_silence_off">Aus</string>
+    <string name="common_skip_silence_strong">Stark</string>
     <string name="common_sleep_timer">Sleep-Timer</string>
     <string name="common_sleep_timer_off">Aus</string>
     <string name="common_source">Quelle</string>

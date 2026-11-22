@@ -19,6 +19,9 @@ import androidx.media3.session.MediaSession
 import androidx.media3.session.SessionCommand
 import app.podiumpodcasts.podium.R
 import app.podiumpodcasts.podium.SettingsRepository
+import app.podiumpodcasts.podium.background.audio.SkipSilenceAudioProcessorChain
+import app.podiumpodcasts.podium.background.audio.SkipSilenceLevel
+import app.podiumpodcasts.podium.background.audio.SkipSilenceRenderersFactory
 import app.podiumpodcasts.podium.background.notification.NewPodcastEpisodeNotification
 import app.podiumpodcasts.podium.background.worker.sync.PartialSynchronizationWorker
 import app.podiumpodcasts.podium.manager.DatabaseManager
@@ -30,7 +33,9 @@ import app.podiumpodcasts.podium.utils.getOrigin
 import app.podiumpodcasts.podium.utils.getResumeAt
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -57,6 +62,9 @@ class PlaybackService : MediaLibraryService() {
     private val scope = CoroutineScope(job)
 
     private var mediaSession: MediaLibrarySession? = null
+
+    private val skipSilenceChain = SkipSilenceAudioProcessorChain()
+    private var skipSilenceJob: Job? = null
 
     private var currentSkipEndingValue: Int = 0
 
@@ -106,7 +114,11 @@ class PlaybackService : MediaLibraryService() {
             settingsRepository.behavior.playerPlaybackSpeed.first()
         }
 
-        val player = ExoPlayer.Builder(this)
+        val skipSilenceLevel = runBlocking {
+            settingsRepository.behavior.playerSkipSilence.first()
+        }
+
+        val player = ExoPlayer.Builder(this, SkipSilenceRenderersFactory(this, skipSilenceChain))
             .setSeekBackIncrementMs(seekBackIncrement)
             .setSeekForwardIncrementMs(seekForwardIncrement)
             .setAudioAttributes(
@@ -120,6 +132,7 @@ class PlaybackService : MediaLibraryService() {
             .build()
 
         player.setPlaybackSpeed(playbackSpeed)
+        applySkipSilence(player, skipSilenceLevel)
 
         mediaSession = MediaLibrarySession.Builder(this, player, MediaLibrarySessionCallback(this))
             .setMediaButtonPreferences(buildMediaButtons(player))
@@ -130,6 +143,35 @@ class PlaybackService : MediaLibraryService() {
             .build()
 
         registerPlayStateListener()
+
+        skipSilenceJob = scope.launch(Dispatchers.Main) {
+            settingsRepository.behavior.playerSkipSilence
+                .distinctUntilChanged()
+                .collect { level -> applySkipSilence(player, level) }
+        }
+    }
+
+    /**
+     * Must be called on the player's application (main) thread.
+     */
+    @OptIn(UnstableApi::class)
+    private fun applySkipSilence(player: ExoPlayer, level: SkipSilenceLevel) {
+        val wasEnabled = player.skipSilenceEnabled
+        if(level == skipSilenceChain.level && wasEnabled == (level != SkipSilenceLevel.OFF)) return
+
+        // set before toggling: the chain reads it when the sink applies skip silence
+        skipSilenceChain.level = level
+
+        when {
+            level == SkipSilenceLevel.OFF -> player.skipSilenceEnabled = false
+            !wasEnabled -> player.skipSilenceEnabled = true
+            else -> {
+                // ExoPlayer ignores setting the same value; toggle so the sink drains and
+                // re-applies skip silence, which makes the chain pick up the new level
+                player.skipSilenceEnabled = false
+                player.skipSilenceEnabled = true
+            }
+        }
     }
 
     fun buildMediaButtons(
@@ -409,6 +451,7 @@ class PlaybackService : MediaLibraryService() {
         updatePlayStateHandler.removeCallbacks(updatePlayStateRunnable)
         skipEndingHandler.removeCallbacks(skipEndingRunnable)
         sleepTimerHandler.removeCallbacksAndMessages(null)
+        skipSilenceJob?.cancel()
 
         stopSleepTimer()
 

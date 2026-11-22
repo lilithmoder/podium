@@ -26,6 +26,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 import androidx.compose.material.icons.filled.Bedtime
 import androidx.compose.material.icons.filled.Speed
+import androidx.compose.material.icons.rounded.ContentCut
 import androidx.compose.material.icons.rounded.Download
 import androidx.compose.material.icons.rounded.Forward10
 import androidx.compose.material.icons.rounded.Forward30
@@ -76,6 +77,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.podiumpodcasts.podium.R
+import app.podiumpodcasts.podium.background.audio.SkipSilenceLevel
 import app.podiumpodcasts.podium.ui.component.common.SwitchableDynamicMaterialExpressiveTheme
 import app.podiumpodcasts.podium.ui.custom.icons.Forward
 import app.podiumpodcasts.podium.ui.dialog.ShimmerAsyncImage
@@ -133,7 +135,11 @@ fun MediaPlayerBottomSheet(
 
     var showSleepTimerBottomSheet by remember { mutableStateOf(false) }
     var showSpeedBottomSheet by remember { mutableStateOf(false) }
+    var showSkipSilenceBottomSheet by remember { mutableStateOf(false) }
     var showQueueBottomSheet by remember { mutableStateOf(false) }
+
+    val skipSilenceLevel by settingsRepository.behavior.playerSkipSilence
+        .collectAsState(SkipSilenceLevel.OFF)
 
     val sheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = true
@@ -525,6 +531,41 @@ fun MediaPlayerBottomSheet(
                         }
                     }
 
+                    AnimatedContent(skipSilenceLevel) { level ->
+                        Button(
+                            modifier = Modifier
+                                .heightIn(size)
+                                .padding(4.dp),
+                            contentPadding = ButtonDefaults.contentPaddingFor(size),
+                            shapes = ButtonDefaults.shapesFor(size),
+                            colors = when(level) {
+                                SkipSilenceLevel.OFF -> colors
+                                else -> ButtonDefaults.buttonColors()
+                            },
+                            onClick = { showSkipSilenceBottomSheet = true }
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    Icons.Rounded.ContentCut,
+                                    contentDescription = stringResource(R.string.common_skip_silence),
+                                    modifier = Modifier.size(ButtonDefaults.iconSizeFor(size)),
+                                )
+
+                                Spacer(Modifier.size(ButtonDefaults.iconSpacingFor(size)))
+
+                                Text(
+                                    text = when(level) {
+                                        SkipSilenceLevel.OFF -> stringResource(R.string.common_skip_silence)
+                                        else -> stringResource(level.labelId)
+                                    },
+                                    style = ButtonDefaults.textStyleFor(size)
+                                )
+                            }
+                        }
+                    }
+
                     if(vm.queue.isNotEmpty()) Button(
                         modifier = Modifier
                             .heightIn(size)
@@ -561,6 +602,10 @@ fun MediaPlayerBottomSheet(
 
         if(showSpeedBottomSheet) MediaPlayerSpeedBottomSheet {
             showSpeedBottomSheet = false
+        }
+
+        if(showSkipSilenceBottomSheet) MediaPlayerSkipSilenceBottomSheet {
+            showSkipSilenceBottomSheet = false
         }
 
         if(showQueueBottomSheet) MediaPlayerQueueBottomSheet(

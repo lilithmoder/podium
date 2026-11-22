@@ -68,6 +68,12 @@
     <string name="common_saved">Saved</string>
     <string name="common_search">Search</string>
     <string name="common_size">Size</string>
+    <string name="common_skip_silence">Skip silence</string>
+    <string name="common_skip_silence_description">Shortens pauses between words and sentences. Stronger levels save more time but can sound less natural.</string>
+    <string name="common_skip_silence_medium">Medium</string>
+    <string name="common_skip_silence_mild">Mild</string>
+    <string name="common_skip_silence_off">Off</string>
+    <string name="common_skip_silence_strong">Strong</string>
     <string name="common_sleep_timer">Sleep Timer</string>
     <string name="common_sleep_timer_off">off</string>
     <string name="common_source">Source</string>
