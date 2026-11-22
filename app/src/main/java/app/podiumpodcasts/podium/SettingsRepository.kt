@@ -12,6 +12,7 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import app.podiumpodcasts.podium.background.audio.SkipSilenceLevel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -31,6 +32,8 @@ object SettingsKeys {
         longPreferencesKey("behavior_player_seek_back_increment")
     val BEHAVIOR_PLAYER_SEEK_FORWARD_INCREMENT =
         longPreferencesKey("behavior_player_seek_forward_increment")
+    val BEHAVIOR_PLAYER_SKIP_SILENCE =
+        stringPreferencesKey("behavior_player_skip_silence")
     val BEHAVIOR_UPDATE_PODCASTS_IN_ROAMING =
         booleanPreferencesKey("behavior_update_podcasts_in_roaming")
     val BEHAVIOR_UPDATE_PODCASTS_INTERVAL_MINUTES =
@@ -155,6 +158,15 @@ class SettingsRepository(val context: Context) {
 
         suspend fun setPlayerSeekForwardIncrement(increment: Long) = dataStore.edit { preferences ->
             preferences[SettingsKeys.BEHAVIOR_PLAYER_SEEK_FORWARD_INCREMENT] = increment
+        }
+
+        val playerSkipSilence: Flow<SkipSilenceLevel> = dataStore.data
+            .map { preferences ->
+                SkipSilenceLevel.fromName(preferences[SettingsKeys.BEHAVIOR_PLAYER_SKIP_SILENCE])
+            }
+
+        suspend fun setPlayerSkipSilence(level: SkipSilenceLevel) = dataStore.edit { preferences ->
+            preferences[SettingsKeys.BEHAVIOR_PLAYER_SKIP_SILENCE] = level.name
         }
 
         val updatePodcastsInRoaming: Flow<Boolean> = dataStore.data

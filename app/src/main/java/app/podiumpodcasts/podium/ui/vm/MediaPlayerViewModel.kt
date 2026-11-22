@@ -282,7 +282,13 @@ class MediaPlayerViewModel : ViewModel() {
             this@MediaPlayerViewModel.currentDuration = player.duration.coerceAtLeast(1L)
             this@MediaPlayerViewModel.currentPosition = player.currentPosition
             this@MediaPlayerViewModel.lastProgressUpdate = System.currentTimeMillis()
-            this@MediaPlayerViewModel.updateSleepTimer()
+
+            // skip silence reports frequent position discontinuities; avoid a blocking
+            // session round trip for each of them (the sleep timer is wall-clock based)
+            val onlyDiscontinuity = events.size() == 1 &&
+                    events.contains(Player.EVENT_POSITION_DISCONTINUITY)
+            if(!onlyDiscontinuity) this@MediaPlayerViewModel.updateSleepTimer()
+
             super.onEvents(player, events)
         }
 

@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.ContentCut
 import androidx.compose.material.icons.rounded.Replay
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -18,16 +19,21 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.podiumpodcasts.podium.R
+import app.podiumpodcasts.podium.background.audio.SkipSilenceLevel
+import app.podiumpodcasts.podium.ui.component.settings.SettingsListItem
 import app.podiumpodcasts.podium.ui.component.settings.SettingsSecondsSliderListItem
 import app.podiumpodcasts.podium.ui.custom.icons.Forward
+import app.podiumpodcasts.podium.ui.dialog.bottomsheet.media.MediaPlayerSkipSilenceBottomSheet
 import app.podiumpodcasts.podium.ui.helper.LocalDatabase
 import app.podiumpodcasts.podium.ui.helper.LocalSettingsRepository
 import app.podiumpodcasts.podium.ui.route.settings.SettingsPaneKey
@@ -101,7 +107,7 @@ fun SettingsPlaybackPane(
                     },
 
                     index = 0,
-                    count = 2
+                    count = 3
                 )
             }
 
@@ -135,8 +141,35 @@ fun SettingsPlaybackPane(
                     },
 
                     index = 1,
-                    count = 2
+                    count = 3
                 )
+            }
+
+            item {
+                val level by vm.repository.behavior.playerSkipSilence
+                    .collectAsState(SkipSilenceLevel.OFF)
+
+                var showSkipSilenceBottomSheet by remember { mutableStateOf(false) }
+
+                SettingsListItem(
+                    icon = {
+                        Icon(
+                            Icons.Rounded.ContentCut,
+                            stringResource(R.string.common_skip_silence)
+                        )
+                    },
+                    label = stringResource(R.string.common_skip_silence),
+                    description = stringResource(level.labelId),
+
+                    index = 2,
+                    count = 3,
+
+                    onClick = { showSkipSilenceBottomSheet = true }
+                )
+
+                if(showSkipSilenceBottomSheet) MediaPlayerSkipSilenceBottomSheet {
+                    showSkipSilenceBottomSheet = false
+                }
             }
         }
     }
