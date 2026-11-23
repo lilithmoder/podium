@@ -10,6 +10,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
+import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.CommandButton
@@ -19,9 +20,12 @@ import androidx.media3.session.MediaSession
 import androidx.media3.session.SessionCommand
 import app.podiumpodcasts.podium.R
 import app.podiumpodcasts.podium.SettingsRepository
+import app.podiumpodcasts.podium.api.db.model.ChapterSource
+import app.podiumpodcasts.podium.api.db.model.PodcastEpisodeChapterModel
 import app.podiumpodcasts.podium.background.audio.SkipSilenceAudioProcessorChain
 import app.podiumpodcasts.podium.background.audio.SkipSilenceLevel
 import app.podiumpodcasts.podium.background.audio.SkipSilenceRenderersFactory
+import app.podiumpodcasts.podium.background.chapters.parseId3Chapters
 import app.podiumpodcasts.podium.background.notification.NewPodcastEpisodeNotification
 import app.podiumpodcasts.podium.background.worker.sync.PartialSynchronizationWorker
 import app.podiumpodcasts.podium.manager.DatabaseManager
@@ -414,11 +418,58 @@ class PlaybackService : MediaLibraryService() {
                 super.onMediaMetadataChanged(mediaMetadata)
             }
 
+            override fun onTracksChanged(tracks: Tracks) {
+                saveEmbeddedChapters(tracks)
+                super.onTracksChanged(tracks)
+            }
+
             override fun onPlaybackParametersChanged(playbackParameters: PlaybackParameters) {
                 scope.launch { settingsRepository.behavior.setPlayerPlaybackSpeed(playbackParameters.speed) }
                 super.onPlaybackParametersChanged(playbackParameters)
             }
         })
+    }
+
+    /**
+     * Stores chapters embedded in the audio file (ID3 CHAP frames). The track format's
+     * metadata is not passed on to MediaControllers, so this has to happen here; the UI
+     * reads the result from the database.
+     */
+    @OptIn(UnstableApi::class)
+    private fun saveEmbeddedChapters(tracks: Tracks) {
+        val episodeId = getEpisodeId() ?: return
+
+        val metadata = tracks.groups
+            .filter { it.type == C.TRACK_TYPE_AUDIO }
+            .flatMap { group -> (0 until group.length).mapNotNull { group.getTrackFormat(it).metadata } }
+        if(metadata.isEmpty()) return
+
+        val chapters = parseId3Chapters(
+            metadata = metadata,
+            durationMs = mediaSession?.player?.duration
+        )
+        // keep previously stored chapters if this event carries none
+        if(chapters.isEmpty()) return
+
+        val rows = chapters.mapIndexed { index, chapter ->
+            PodcastEpisodeChapterModel(
+                episodeId = episodeId,
+                source = ChapterSource.ID3,
+                position = index,
+                startMs = chapter.startMs,
+                endMs = chapter.endMs,
+                title = chapter.title,
+                url = chapter.url,
+                imageUrl = null
+            )
+        }
+
+        scope.launch {
+            // fails if the episode row no longer exists (foreign key); chapters are optional
+            runCatching {
+                db.podcastEpisodeChapters().replaceForSource(episodeId, ChapterSource.ID3, rows)
+            }
+        }
     }
 
     fun stopSleepTimer() {

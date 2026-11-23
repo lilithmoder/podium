@@ -24,6 +24,13 @@ jobs:
       - name: Assemble debug
         run: ./gradlew --no-daemon :app:assembleDebug
 
+      - name: Unit tests
+        run: ./gradlew --no-daemon :app:testDebugUnitTest
+
+      # compare against the hand-written migrations in AppDatabase.kt
+      - name: Print Room CREATE TABLE statements
+        run: grep -rhoE 'CREATE TABLE IF NOT EXISTS `podcastEpisodeChapter`[^"]*|CREATE INDEX IF NOT EXISTS `index_podcastEpisodeChapter[^"]*' app/build/generated/ksp/debug | sort -u
+
       # lint may flag pre-existing issues; keep the compile result separate
       - name: Lint debug
         id: lint

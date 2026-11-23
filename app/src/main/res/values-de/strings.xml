@@ -67,6 +67,10 @@
     <string name="common_saved">Gespeichert</string>
     <string name="common_search">Suche</string>
     <string name="common_size">Größe</string>
+    <string name="common_action_next_chapter">Nächstes Kapitel</string>
+    <string name="common_action_previous_chapter">Vorheriges Kapitel</string>
+    <string name="common_chapter_fallback">Kapitel %1$d</string>
+    <string name="common_chapters">Kapitel</string>
     <string name="common_skip_silence">Stille überspringen</string>
     <string name="common_skip_silence_description">Verkürzt Pausen zwischen Wörtern und Sätzen. Stärkere Stufen sparen mehr Zeit, können aber weniger natürlich klingen.</string>
     <string name="common_skip_silence_medium">Mittel</string>

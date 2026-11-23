@@ -66,6 +66,10 @@
     <string name="common_saved">Sauvegardé</string>
     <string name="common_search">Recherche</string>
     <string name="common_size">Taille</string>
+    <string name="common_action_next_chapter">Chapitre suivant</string>
+    <string name="common_action_previous_chapter">Chapitre précédent</string>
+    <string name="common_chapter_fallback">Chapitre %1$d</string>
+    <string name="common_chapters">Chapitres</string>
     <string name="common_skip_silence">Ignorer les silences</string>
     <string name="common_skip_silence_description">Raccourcit les pauses entre les mots et les phrases. Les niveaux plus forts font gagner plus de temps mais peuvent sembler moins naturels.</string>
     <string name="common_skip_silence_medium">Moyen</string>

@@ -54,6 +54,10 @@
     <string name="common_saved">Kaydedildi</string>
     <string name="common_search">Ara</string>
     <string name="common_size">Boyut</string>
+    <string name="common_action_next_chapter">Sonraki kısım</string>
+    <string name="common_action_previous_chapter">Önceki kısım</string>
+    <string name="common_chapter_fallback">Kısım %1$d</string>
+    <string name="common_chapters">Kısımlar</string>
     <string name="common_skip_silence">Sessizliği atla</string>
     <string name="common_skip_silence_description">Kelimeler ve cümleler arasındaki duraklamaları kısaltır. Daha güçlü seviyeler daha fazla zaman kazandırır ancak daha az doğal duyulabilir.</string>
     <string name="common_skip_silence_medium">Orta</string>

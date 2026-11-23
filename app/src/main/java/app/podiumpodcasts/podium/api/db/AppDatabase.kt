@@ -7,6 +7,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import app.podiumpodcasts.podium.api.db.dao.ListDao
 import app.podiumpodcasts.podium.api.db.dao.ListItemDao
 import app.podiumpodcasts.podium.api.db.dao.PodcastDao
+import app.podiumpodcasts.podium.api.db.dao.PodcastEpisodeChapterDao
 import app.podiumpodcasts.podium.api.db.dao.PodcastEpisodeDao
 import app.podiumpodcasts.podium.api.db.dao.PodcastEpisodeDownloadDao
 import app.podiumpodcasts.podium.api.db.dao.PodcastEpisodePlayStateDao
@@ -16,6 +17,7 @@ import app.podiumpodcasts.podium.api.db.dao.SyncActionDao
 import app.podiumpodcasts.podium.api.db.dao.statistics.UpdatePodcastRunDao
 import app.podiumpodcasts.podium.api.db.model.ListItemModel
 import app.podiumpodcasts.podium.api.db.model.ListModel
+import app.podiumpodcasts.podium.api.db.model.PodcastEpisodeChapterModel
 import app.podiumpodcasts.podium.api.db.model.PodcastEpisodeDownloadModel
 import app.podiumpodcasts.podium.api.db.model.PodcastEpisodeModel
 import app.podiumpodcasts.podium.api.db.model.PodcastEpisodePlayStateModel
@@ -33,6 +35,7 @@ import app.podiumpodcasts.podium.api.db.model.statistics.UpdatePodcastRunModel
         PodcastHistoryModel::class,
         PodcastSubscriptionModel::class,
         PodcastEpisodeDownloadModel::class,
+        PodcastEpisodeChapterModel::class,
 
         ListModel::class,
         ListItemModel::class,
@@ -40,12 +43,13 @@ import app.podiumpodcasts.podium.api.db.model.statistics.UpdatePodcastRunModel
         UpdatePodcastRunModel::class,
 
         SyncActionModel::class
-    ], version = 15
+    ], version = 16
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun podcasts(): PodcastDao
     abstract fun podcastEpisodes(): PodcastEpisodeDao
     abstract fun podcastEpisodeDownloads(): PodcastEpisodeDownloadDao
+    abstract fun podcastEpisodeChapters(): PodcastEpisodeChapterDao
     abstract fun podcastEpisodePlayStates(): PodcastEpisodePlayStateDao
     abstract fun podcastHistory(): PodcastHistoryDao
     abstract fun podcastSubscriptions(): PodcastSubscriptionDao
@@ -254,6 +258,30 @@ val MIGRATION_14_15 = object : Migration(14, 15) {
     }
 }
 
+val MIGRATION_15_16 = object : Migration(15, 16) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `podcastEpisodeChapter` (
+                `episodeId` TEXT NOT NULL, 
+                `source` TEXT NOT NULL, 
+                `position` INTEGER NOT NULL, 
+                `startMs` INTEGER NOT NULL, 
+                `endMs` INTEGER, 
+                `title` TEXT, 
+                `url` TEXT, 
+                `imageUrl` TEXT, 
+                PRIMARY KEY(`episodeId`, `source`, `position`), 
+                FOREIGN KEY(`episodeId`) REFERENCES `podcastEpisode`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE
+            )
+        """.trimIndent()
+        )
+        db.execSQL(
+            "CREATE INDEX IF NOT EXISTS `index_podcastEpisodeChapter_episodeId` ON `podcastEpisodeChapter` (`episodeId`)"
+        )
+    }
+}
+
 val ALL_MIGRATIONS = arrayOf(
     MIGRATION_1_2,
     MIGRATION_2_3,
@@ -268,5 +296,6 @@ val ALL_MIGRATIONS = arrayOf(
     MIGRATION_11_12,
     MIGRATION_12_13,
     MIGRATION_13_14,
-    MIGRATION_14_15
+    MIGRATION_14_15,
+    MIGRATION_15_16
 )

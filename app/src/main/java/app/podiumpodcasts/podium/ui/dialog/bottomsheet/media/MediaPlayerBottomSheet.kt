@@ -26,6 +26,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 import androidx.compose.material.icons.filled.Bedtime
 import androidx.compose.material.icons.filled.Speed
+import androidx.compose.material.icons.rounded.Bookmarks
 import androidx.compose.material.icons.rounded.ContentCut
 import androidx.compose.material.icons.rounded.Download
 import androidx.compose.material.icons.rounded.Forward10
@@ -59,6 +60,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -140,6 +142,16 @@ fun MediaPlayerBottomSheet(
 
     val skipSilenceLevel by settingsRepository.behavior.playerSkipSilence
         .collectAsState(SkipSilenceLevel.OFF)
+
+    var showChaptersBottomSheet by remember { mutableStateOf(false) }
+    val chapters by rememberChapters(vm.metadataEpisodeId)
+    // only recompose when the current chapter changes, not on every progress tick
+    val currentChapter by remember(chapters) {
+        derivedStateOf {
+            val positionMs = (progressState.value * vm.currentDuration).toLong()
+            chapters.getOrNull(chapters.currentChapterIndex(positionMs))
+        }
+    }
 
     val sheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = true
@@ -290,6 +302,19 @@ fun MediaPlayerBottomSheet(
                                         overflow = TextOverflow.Ellipsis,
                                         style = Typography.bodyMedium
                                     )
+
+                                    currentChapter?.let { chapter ->
+                                        Text(
+                                            modifier = Modifier.clickable {
+                                                showChaptersBottomSheet = true
+                                            },
+                                            text = chapterTitle(chapter),
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis,
+                                            color = MaterialTheme.colorScheme.primary,
+                                            style = Typography.bodyMedium
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -566,6 +591,33 @@ fun MediaPlayerBottomSheet(
                         }
                     }
 
+                    if(chapters.isNotEmpty()) Button(
+                        modifier = Modifier
+                            .heightIn(size)
+                            .padding(4.dp),
+                        contentPadding = ButtonDefaults.contentPaddingFor(size),
+                        shapes = ButtonDefaults.shapesFor(size),
+                        colors = colors,
+                        onClick = { showChaptersBottomSheet = true }
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                Icons.Rounded.Bookmarks,
+                                contentDescription = stringResource(R.string.common_chapters),
+                                modifier = Modifier.size(ButtonDefaults.iconSizeFor(size)),
+                            )
+
+                            Spacer(Modifier.size(ButtonDefaults.iconSpacingFor(size)))
+
+                            Text(
+                                text = stringResource(R.string.common_chapters),
+                                style = ButtonDefaults.textStyleFor(size)
+                            )
+                        }
+                    }
+
                     if(vm.queue.isNotEmpty()) Button(
                         modifier = Modifier
                             .heightIn(size)
@@ -606,6 +658,10 @@ fun MediaPlayerBottomSheet(
 
         if(showSkipSilenceBottomSheet) MediaPlayerSkipSilenceBottomSheet {
             showSkipSilenceBottomSheet = false
+        }
+
+        if(showChaptersBottomSheet) MediaPlayerChaptersBottomSheet {
+            showChaptersBottomSheet = false
         }
 
         if(showQueueBottomSheet) MediaPlayerQueueBottomSheet(
