@@ -54,6 +54,12 @@
     <string name="common_saved">Kaydedildi</string>
     <string name="common_search">Ara</string>
     <string name="common_size">Boyut</string>
+    <string name="common_skip_silence">Sessizliği atla</string>
+    <string name="common_skip_silence_description">Kelimeler ve cümleler arasındaki duraklamaları kısaltır. Daha güçlü seviyeler daha fazla zaman kazandırır ancak daha az doğal duyulabilir.</string>
+    <string name="common_skip_silence_medium">Orta</string>
+    <string name="common_skip_silence_mild">Hafif</string>
+    <string name="common_skip_silence_off">Kapalı</string>
+    <string name="common_skip_silence_strong">Güçlü</string>
     <string name="common_sleep_timer">Uyku Zamanlayıcısı</string>
     <string name="common_sleep_timer_off">kapalı</string>
     <string name="common_source">Kaynak</string>

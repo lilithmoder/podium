@@ -21,7 +21,7 @@ import app.podiumpodcasts.podium.R
  * and may need tuning by ear.
  */
 enum class SkipSilenceLevel(
-    @StringRes val labelId: Int,
+    @param:StringRes val labelId: Int,
     val minimumSilenceDurationUs: Long,
     val silenceRetentionRatio: Float,
     val maxSilenceToKeepDurationUs: Long,
