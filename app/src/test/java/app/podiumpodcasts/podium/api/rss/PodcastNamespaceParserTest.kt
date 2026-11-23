@@ -103,7 +103,7 @@ class PodcastNamespaceParserTest {
 
     @Test
     fun toleratesLeadingWhitespaceAndBom() {
-        val xml = "﻿\n  " + feed(
+        val xml = "\uFEFF\n  " + feed(
             """
             <item>
               <guid>ep-1</guid>

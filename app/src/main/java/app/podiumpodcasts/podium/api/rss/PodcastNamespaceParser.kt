@@ -24,7 +24,7 @@ fun parseChapterUrls(xml: String): Map<String, String> {
 
     try {
         // an XML declaration must come first; tolerate leading whitespace / BOM
-        val reader = xmlStreaming.newGenericReader(xml.trimStart('﻿', ' ', '\t', '\r', '\n'))
+        val reader = xmlStreaming.newGenericReader(xml.trimStart('\uFEFF', ' ', '\t', '\r', '\n'))
 
         while(reader.hasNext()) {
             when(reader.next()) {
