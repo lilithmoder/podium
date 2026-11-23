@@ -102,6 +102,20 @@ class PodcastNamespaceParserTest {
     }
 
     @Test
+    fun toleratesLeadingWhitespaceAndBom() {
+        val xml = "﻿\n  " + feed(
+            """
+            <item>
+              <guid>ep-1</guid>
+              <podcast:chapters url="https://example.com/1.json" type="application/json+chapters"/>
+            </item>
+            """.trimIndent()
+        ).trimStart()
+
+        assertEquals(mapOf("ep-1" to "https://example.com/1.json"), parseChapterUrls(xml))
+    }
+
+    @Test
     fun feedWithoutNamespaceReturnsEmpty() {
         assertTrue(parseChapterUrls("<rss><channel><item><guid>x</guid></item></channel></rss>").isEmpty())
     }
