@@ -16,8 +16,12 @@ interface FetchPodcastClientResult {
         val fileSize: Long,
         val lastModified: String,
         val eTag: String,
-        val contentLength: String
-    ) : FetchPodcastClientResult
+        val contentLength: String,
+        /** item guid (trimmed) -> podcast:chapters URL, see [parseChapterUrls] */
+        val chapterUrls: Map<String, String> = emptyMap()
+    ) : FetchPodcastClientResult {
+        fun chaptersUrlFor(guid: String?): String? = guid?.trim()?.let { chapterUrls[it] }
+    }
 
     class Unchanged(
         val reason: String
@@ -89,7 +93,8 @@ class FetchPodcastClient(
                     fileSize = bytes.size.toLong(),
                     eTag = response.headers[HttpHeaders.ETag] ?: "",
                     lastModified = response.headers[HttpHeaders.LastModified] ?: "",
-                    contentLength = newContentLength ?: ""
+                    contentLength = newContentLength ?: "",
+                    chapterUrls = parseChapterUrls(string)
                 )
             }
 

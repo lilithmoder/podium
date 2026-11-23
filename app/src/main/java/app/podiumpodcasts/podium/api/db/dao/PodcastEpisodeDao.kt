@@ -154,6 +154,26 @@ interface PodcastEpisodeDao {
     @Update
     suspend fun update(episode: PodcastEpisodeModel)
 
+    @Query("SELECT chaptersUrl FROM podcastEpisode WHERE id=:id")
+    suspend fun getChaptersUrl(id: String): String?
+
+    /**
+     * Stores chapter URLs (episode id -> url) for existing episodes. When an episode's URL
+     * changes, its previously fetched JSON chapters are dropped so they get fetched again.
+     */
+    @Transaction
+    suspend fun updateChaptersUrls(urls: Map<String, String>) {
+        for((id, url) in urls) {
+            if(_setChaptersUrl(id, url) > 0) _deleteJsonChapters(id)
+        }
+    }
+
+    @Query("UPDATE podcastEpisode SET chaptersUrl=:url WHERE id=:id AND (chaptersUrl IS NULL OR chaptersUrl != :url)")
+    suspend fun _setChaptersUrl(id: String, url: String): Int
+
+    @Query("DELETE FROM podcastEpisodeChapter WHERE episodeId=:id AND source='JSON'")
+    suspend fun _deleteJsonChapters(id: String)
+
     @Query("DELETE FROM podcastEpisode WHERE id=:id")
     suspend fun delete(id: String)
 

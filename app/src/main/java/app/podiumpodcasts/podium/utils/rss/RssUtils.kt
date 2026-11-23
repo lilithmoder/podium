@@ -31,7 +31,8 @@ fun RssChannel.toPodcast(
 
 fun RssItem.toPodcastEpisode(
     podcast: PodcastModel,
-    new: Boolean = false
+    new: Boolean = false,
+    chaptersUrl: String? = null
 ): PodcastEpisodeModel {
     return PodcastEpisodeModel(
         id = "${podcast.origin}:$guid",
@@ -49,6 +50,7 @@ fun RssItem.toPodcastEpisode(
         audioUrl = audio ?: video ?: "",
         podcastTitle = podcast.title,
         imageSeedColor = podcast.imageSeedColor,
-        new = new
+        new = new,
+        chaptersUrl = chaptersUrl
     )
 }

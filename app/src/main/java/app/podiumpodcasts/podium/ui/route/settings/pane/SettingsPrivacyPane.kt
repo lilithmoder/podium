@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.CloudOff
 import androidx.compose.material.icons.rounded.ExploreOff
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -85,7 +86,30 @@ fun SettingsPrivacyPane(
                     description = stringResource(R.string.route_settings_privacy_disable_apple_podcasts_api_description),
 
                     index = 0,
-                    count = 1
+                    count = 2
+                )
+            }
+
+            item {
+                val disableChapterDownloads =
+                    vm.repository.privacy.disableChapterDownloads.collectAsState(false)
+
+                SettingsSwitchListItem(
+                    checked = disableChapterDownloads.value,
+                    onCheckedChange = {
+                        scope.launch {
+                            vm.repository.privacy.setDisableChapterDownloads(it)
+                        }
+                    },
+
+                    icon = {
+                        Icon(Icons.Rounded.CloudOff, "")
+                    },
+                    label = stringResource(R.string.route_settings_privacy_disable_chapter_downloads),
+                    description = stringResource(R.string.route_settings_privacy_disable_chapter_downloads_description),
+
+                    index = 1,
+                    count = 2
                 )
             }
         }

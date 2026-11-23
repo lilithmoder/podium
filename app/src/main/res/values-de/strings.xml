@@ -236,6 +236,8 @@
     <string name="route_settings_privacy">Datenschutz</string>
     <string name="route_settings_privacy_disable_apple_podcasts_api">Nutzung der Apple-Podcasts-API deaktivieren</string>
     <string name="route_settings_privacy_disable_apple_podcasts_api_description">podium wird die Apple-Podcasts-API nicht mehr nutzen</string>
+    <string name="route_settings_privacy_disable_chapter_downloads">Keine Kapiteldateien herunterladen</string>
+    <string name="route_settings_privacy_disable_chapter_downloads_description">In Podcast-Feeds verlinkte Kapitellisten liegen oft auf anderen Servern. In Audiodateien eingebettete Kapitel sind nicht betroffen.</string>
     <string name="route_settings_roaming_warning_description">Das Verbrauchen von Datenvolumen in fremden Netzen kann mit hohen Kosten verbunden sein. Möchtest du trotzdem fortfahren?</string>
     <string name="route_settings_roaming_warning_title">Achtung</string>
     <string name="route_settings_synchronization_synchronize_now">Jetzt synchronisieren</string>

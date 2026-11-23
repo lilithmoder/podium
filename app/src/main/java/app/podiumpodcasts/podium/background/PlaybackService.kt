@@ -26,6 +26,7 @@ import app.podiumpodcasts.podium.background.audio.SkipSilenceAudioProcessorChain
 import app.podiumpodcasts.podium.background.audio.SkipSilenceLevel
 import app.podiumpodcasts.podium.background.audio.SkipSilenceRenderersFactory
 import app.podiumpodcasts.podium.background.chapters.parseId3Chapters
+import app.podiumpodcasts.podium.background.chapters.parseJsonChapters
 import app.podiumpodcasts.podium.background.notification.NewPodcastEpisodeNotification
 import app.podiumpodcasts.podium.background.worker.sync.PartialSynchronizationWorker
 import app.podiumpodcasts.podium.manager.DatabaseManager
@@ -35,6 +36,11 @@ import app.podiumpodcasts.podium.utils.getAudioUrl
 import app.podiumpodcasts.podium.utils.getEpisodeId
 import app.podiumpodcasts.podium.utils.getOrigin
 import app.podiumpodcasts.podium.utils.getResumeAt
+import io.ktor.client.HttpClient
+import io.ktor.client.request.get
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.isSuccess
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -44,6 +50,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import java.util.concurrent.ConcurrentHashMap
 
 const val COMMAND_SLEEP_TIMER_SET = "app.podiumpodcasts.podium.COMMAND_SLEEP_TIMER_SET"
 const val COMMAND_SLEEP_TIMER_GET = "app.podiumpodcasts.podium.COMMAND_SLEEP_TIMER_GET"
@@ -69,6 +76,11 @@ class PlaybackService : MediaLibraryService() {
 
     private val skipSilenceChain = SkipSilenceAudioProcessorChain()
     private var skipSilenceJob: Job? = null
+
+    private val chaptersHttpClient by lazy { HttpClient { } }
+    // chapter URLs already tried in this service's lifetime; avoids refetching on every
+    // media item change, a failed fetch is retried after the service restarts
+    private val attemptedChapterUrls = ConcurrentHashMap.newKeySet<String>()
 
     private var currentSkipEndingValue: Int = 0
 
@@ -312,6 +324,8 @@ class PlaybackService : MediaLibraryService() {
                     mediaSession?.player?.seekTo(resumeAt)
                 }
 
+                mediaItem?.getEpisodeId()?.let { fetchJsonChaptersIfNeeded(it) }
+
                 super.onMediaItemTransition(mediaItem, reason)
             }
 
@@ -472,6 +486,50 @@ class PlaybackService : MediaLibraryService() {
         }
     }
 
+    /**
+     * Fetches the episode's Podcasting 2.0 JSON chapters file (podcast:chapters) once, unless
+     * disabled in the privacy settings. Stored chapters are preferred over embedded ones.
+     */
+    private fun fetchJsonChaptersIfNeeded(episodeId: String) {
+        scope.launch {
+            if(settingsRepository.privacy.disableChapterDownloads.first()) return@launch
+
+            val url = db.podcastEpisodes().getChaptersUrl(episodeId) ?: return@launch
+            if(db.podcastEpisodeChapters().hasSource(episodeId, ChapterSource.JSON)) return@launch
+            if(!attemptedChapterUrls.add(url)) return@launch
+
+            try {
+                val response = chaptersHttpClient.get(url)
+                if(!response.status.isSuccess()) return@launch
+
+                // duration unknown here (player is main-thread only); chapters are not
+                // range-checked against it
+                val chapters = parseJsonChapters(response.bodyAsText(), durationMs = null)
+                if(chapters.isEmpty()) return@launch
+
+                val rows = chapters.mapIndexed { index, chapter ->
+                    PodcastEpisodeChapterModel(
+                        episodeId = episodeId,
+                        source = ChapterSource.JSON,
+                        position = index,
+                        startMs = chapter.startMs,
+                        endMs = chapter.endMs,
+                        title = chapter.title,
+                        url = chapter.url,
+                        imageUrl = chapter.imageUrl
+                    )
+                }
+
+                db.podcastEpisodeChapters().replaceForSource(episodeId, ChapterSource.JSON, rows)
+            } catch(e: CancellationException) {
+                throw e
+            } catch(e: Exception) {
+                // network error, malformed file or episode deleted: chapters are optional
+                e.printStackTrace()
+            }
+        }
+    }
+
     fun stopSleepTimer() {
         sleepTimerTrigger = null
         sleepTimerRunnable.let { sleepTimerHandler.removeCallbacks(it) }
@@ -503,6 +561,8 @@ class PlaybackService : MediaLibraryService() {
         skipEndingHandler.removeCallbacks(skipEndingRunnable)
         sleepTimerHandler.removeCallbacksAndMessages(null)
         skipSilenceJob?.cancel()
+        // only close the client if it was created
+        if(attemptedChapterUrls.isNotEmpty()) chaptersHttpClient.close()
 
         stopSleepTimer()
 

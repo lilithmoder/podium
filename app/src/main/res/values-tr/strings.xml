@@ -193,6 +193,8 @@
     <string name="route_settings_privacy">Gizlilik</string>
     <string name="route_settings_privacy_disable_apple_podcasts_api">Apple Podcasts API kullanımını devre dışı bırak</string>
     <string name="route_settings_privacy_disable_apple_podcasts_api_description">Etkinleştirilirse, podium artık Apple Podcasts API\'sini kullanmayacaktır</string>
+    <string name="route_settings_privacy_disable_chapter_downloads">Kısım dosyalarını indirme</string>
+    <string name="route_settings_privacy_disable_chapter_downloads_description">Podcast akışlarında bağlantısı verilen kısım listeleri genellikle başka sunucularda barındırılır. Ses dosyalarına gömülü kısımlar etkilenmez.</string>
     <string name="route_settings_roaming_warning_description">Yabancı ağlarda veri kullanmak, operatöründen kaynaklı yüksek dolaşım ücretlerine yol açabilir. Devam etmek istiyor musun?</string>
     <string name="route_settings_roaming_warning_title">Dikkat</string>
     <string name="route_subscriptions">Abonelikler</string>

@@ -38,7 +38,9 @@ class PodcastManager(
             throw Exception(response.toString())
 
         val podcast = response.rssChannel.toPodcast(origin, response.fileSize, null)
-        val episodes = response.rssChannel.items.map { it.toPodcastEpisode(podcast = podcast) }
+        val episodes = response.rssChannel.items.map {
+            it.toPodcastEpisode(podcast = podcast, chaptersUrl = response.chaptersUrlFor(it.guid))
+        }
 
         return addPodcast(podcast, episodes, seedColor, false)
     }

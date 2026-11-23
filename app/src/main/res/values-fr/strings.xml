@@ -281,4 +281,6 @@
     <string name="route_settings_privacy">Confidentialité</string>
     <string name="route_settings_privacy_disable_apple_podcasts_api">Désactiver l\'utilisation de l\'API d\'Apple Podcasts</string>
     <string name="route_settings_privacy_disable_apple_podcasts_api_description">Si cette option est activée, podium n\'utilisera plus l\'API d\'Apple Podcasts</string>
+    <string name="route_settings_privacy_disable_chapter_downloads">Ne pas télécharger les fichiers de chapitres</string>
+    <string name="route_settings_privacy_disable_chapter_downloads_description">Les listes de chapitres liées dans les flux de podcasts sont souvent hébergées sur d\'autres serveurs. Les chapitres intégrés aux fichiers audio ne sont pas concernés.</string>
 </resources>

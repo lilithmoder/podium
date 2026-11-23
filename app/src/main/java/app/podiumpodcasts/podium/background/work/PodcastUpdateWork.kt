@@ -59,12 +59,26 @@ class PodcastUpdateWork(
                 is FetchPodcastClientResult.Success -> {
                     dataUsage += response.fileSize + HEADER_OVERHEAD
 
-                    val episodeIds = db.podcastEpisodes().getEpisodeIds(origin)
+                    val episodeIds = db.podcastEpisodes().getEpisodeIds(origin).toSet()
                     val podcast = subscription.podcast
 
-                    val newEpisodes = response.rssChannel.items
-                        .filter { !episodeIds.contains("$origin:${it.guid}") }
-                        .map { it.toPodcastEpisode(podcast = podcast, new = true) }
+                    val (existingItems, newItems) = response.rssChannel.items
+                        .partition { episodeIds.contains("$origin:${it.guid}") }
+
+                    val newEpisodes = newItems.map {
+                        it.toPodcastEpisode(
+                            podcast = podcast,
+                            new = true,
+                            chaptersUrl = response.chaptersUrlFor(it.guid)
+                        )
+                    }
+
+                    // existing episodes are never re-inserted; backfill/refresh their chapter URLs
+                    val existingChapterUrls = existingItems.mapNotNull { item ->
+                        response.chaptersUrlFor(item.guid)?.let { url -> "$origin:${item.guid}" to url }
+                    }.toMap()
+                    if(existingChapterUrls.isNotEmpty())
+                        db.podcastEpisodes().updateChaptersUrls(existingChapterUrls)
 
                     if(subscription.subscription.enableNotifications) for(episode in newEpisodes) NewPodcastEpisodeNotification(
                         podcastTitle = podcast.fetchTitle(),

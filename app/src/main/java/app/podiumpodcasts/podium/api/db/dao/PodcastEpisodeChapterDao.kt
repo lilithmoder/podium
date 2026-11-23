@@ -39,6 +39,9 @@ interface PodcastEpisodeChapterDao {
     )
     fun _observeAll(episodeId: String): Flow<List<PodcastEpisodeChapterModel>>
 
+    @Query("SELECT EXISTS(SELECT 1 FROM podcastEpisodeChapter WHERE episodeId = :episodeId AND source = :source)")
+    suspend fun hasSource(episodeId: String, source: String): Boolean
+
     @Query("DELETE FROM podcastEpisodeChapter WHERE episodeId = :episodeId AND source = :source")
     suspend fun _deleteForSource(episodeId: String, source: String)
 

@@ -65,7 +65,10 @@ data class PodcastEpisodeModel(
     @ColumnInfo("imageSeedColor")
     var imageSeedColor: Int,
     @ColumnInfo("new")
-    val new: Boolean = false
+    val new: Boolean = false,
+    /** URL of a Podcasting 2.0 JSON chapters file (podcast:chapters), if the feed has one */
+    @ColumnInfo("chaptersUrl")
+    val chaptersUrl: String? = null
 ) {
     fun createMediaItem(
         context: Context,

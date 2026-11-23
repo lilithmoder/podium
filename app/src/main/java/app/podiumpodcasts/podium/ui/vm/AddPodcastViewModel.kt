@@ -66,7 +66,12 @@ class AddPodcastViewModel(
 
                 val podcast = response.rssChannel.toPodcast(origin, response.fileSize, null)
                 val episodes =
-                    response.rssChannel.items.map { it.toPodcastEpisode(podcast = podcast) }
+                    response.rssChannel.items.map {
+                        it.toPodcastEpisode(
+                            podcast = podcast,
+                            chaptersUrl = response.chaptersUrlFor(it.guid)
+                        )
+                    }
 
                 seedColor = null
                 state = AddPodcastState.Preview(

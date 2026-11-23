@@ -43,7 +43,7 @@ import app.podiumpodcasts.podium.api.db.model.statistics.UpdatePodcastRunModel
         UpdatePodcastRunModel::class,
 
         SyncActionModel::class
-    ], version = 16
+    ], version = 17
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun podcasts(): PodcastDao
@@ -258,6 +258,12 @@ val MIGRATION_14_15 = object : Migration(14, 15) {
     }
 }
 
+val MIGRATION_16_17 = object : Migration(16, 17) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE `podcastEpisode` ADD COLUMN `chaptersUrl` TEXT")
+    }
+}
+
 val MIGRATION_15_16 = object : Migration(15, 16) {
     override fun migrate(db: SupportSQLiteDatabase) {
         db.execSQL(
@@ -297,5 +303,6 @@ val ALL_MIGRATIONS = arrayOf(
     MIGRATION_12_13,
     MIGRATION_13_14,
     MIGRATION_14_15,
-    MIGRATION_15_16
+    MIGRATION_15_16,
+    MIGRATION_16_17
 )

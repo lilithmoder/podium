@@ -57,6 +57,8 @@ object SettingsKeys {
     val SYNC_TIMESTAMP_SUBSCRIPTIONS = longPreferencesKey("sync_timestamp_subscriptions")
     val SYNC_TIMESTAMP_EPISODE_ACTIONS = longPreferencesKey("sync_timestamp_episode_actions")
 
+    val PRIVACY_DISABLE_CHAPTER_DOWNLOADS =
+        booleanPreferencesKey("privacy_disable_chapter_downloads")
     val PRIVACY_DISABLE_APPLE_PODCASTS_API =
         booleanPreferencesKey("privacy_disable_apple_podcasts_api")
 
@@ -320,6 +322,15 @@ class SettingsRepository(val context: Context) {
 
         suspend fun setDisableApplePodcastsApi(disable: Boolean) = dataStore.edit { preferences ->
             preferences[SettingsKeys.PRIVACY_DISABLE_APPLE_PODCASTS_API] = disable
+        }
+
+        val disableChapterDownloads: Flow<Boolean> = dataStore.data
+            .map { preferences ->
+                preferences[SettingsKeys.PRIVACY_DISABLE_CHAPTER_DOWNLOADS] ?: false
+            }
+
+        suspend fun setDisableChapterDownloads(disable: Boolean) = dataStore.edit { preferences ->
+            preferences[SettingsKeys.PRIVACY_DISABLE_CHAPTER_DOWNLOADS] = disable
         }
     }
 

@@ -229,6 +229,8 @@
     <string name="route_settings_privacy">Privacy</string>
     <string name="route_settings_privacy_disable_apple_podcasts_api">Disabilita utilizzo API Apple Podcasts</string>
     <string name="route_settings_privacy_disable_apple_podcasts_api_description">Se abilitato, podium non utilizzerà più le API di Apple Podcasts</string>
+    <string name="route_settings_privacy_disable_chapter_downloads">Non scaricare i file dei capitoli</string>
+    <string name="route_settings_privacy_disable_chapter_downloads_description">Gli elenchi dei capitoli collegati nei feed dei podcast sono spesso ospitati su altri server. I capitoli incorporati nei file audio non sono interessati.</string>
     <string name="route_settings_roaming_warning_description">Usare dati su reti estere può comportare costi significativi dal tuo operatore. Vuoi continuare?</string>
     <string name="route_settings_roaming_warning_title">Attenzione</string>
     <string name="route_subscriptions">Iscrizioni</string>
