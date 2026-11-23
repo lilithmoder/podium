@@ -63,6 +63,12 @@
     <string name="common_saved">Salvati</string>
     <string name="common_search">Cerca</string>
     <string name="common_size">Dimensioni</string>
+    <string name="common_skip_silence">Salta silenzi</string>
+    <string name="common_skip_silence_description">Accorcia le pause tra parole e frasi. I livelli più forti fanno risparmiare più tempo ma possono suonare meno naturali.</string>
+    <string name="common_skip_silence_medium">Medio</string>
+    <string name="common_skip_silence_mild">Leggero</string>
+    <string name="common_skip_silence_off">Disattivato</string>
+    <string name="common_skip_silence_strong">Forte</string>
     <string name="common_sleep_timer">Sleep timer</string>
     <string name="common_sleep_timer_off">Disattivato</string>
     <string name="common_source">Fonte</string>
